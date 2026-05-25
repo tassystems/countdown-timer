@@ -1,6 +1,3 @@
-Here is a clean **README.md + installation guide** tailored exactly to your Raspberry Pi 3B+ headless setup and your Pygame fullscreen kiosk timer.
-
----
 
 # ⏳ 24U Countdown Timer for Raspberry Pi
 
