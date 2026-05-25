@@ -88,7 +88,7 @@ cd countdown-timer
 Save your script as:
 
 ```
-countdown-timer.py
+countdown.py
 ```
 
 ---
@@ -98,7 +98,7 @@ countdown-timer.py
 ### Option 1: Direct launch (desktop mode)
 
 ```bash
-python3 countdown-timer.py
+python3 countdown.py
 ```
 
 ---
@@ -114,7 +114,7 @@ sudo nano /etc/rc.local
 Add before `exit 0`:
 
 ```bash
-python3 /home/pi/countdown-timer/countdown-timer.py &
+python3 /home/pi/countdown-timer/countdown.py &
 ```
 
 ---
@@ -135,7 +135,7 @@ Description=Countdown Timer
 After=graphical.target
 
 [Service]
-ExecStart=/usr/bin/python3 /home/pi/countdown-timer/countdown-timer.py
+ExecStart=/usr/bin/python3 /home/pi/countdown-timer/countdown.py
 Restart=always
 User=pi
 Environment=DISPLAY=:0
