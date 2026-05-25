@@ -1,163 +1,199 @@
-# Walk for a Cause — Countdown Timer
-## Headless Raspberry Pi 3B+ Setup Guide (pygame / framebuffer)
+Here is a clean **README.md + installation guide** tailored exactly to your Raspberry Pi 3B+ headless setup and your Pygame fullscreen kiosk timer.
 
 ---
 
-### Why pygame / headless?
-- Runs directly on the framebuffer — **no desktop, no Xorg, no browser needed**
-- Boots in ~15 seconds instead of ~45 seconds with a full desktop
-- Uses less RAM and CPU, leaving more headroom on the Pi 3B+
-- Full control over every pixel, perfectly centred at any resolution
+# ⏳ 24U Countdown Timer for Raspberry Pi
+
+A fullscreen Raspberry Pi (3B+ or higher) countdown timer built with Pygame for events.
+
+Features:
+- 24-hour default countdown
+- Custom HH:MM:SS timer modification (keyboard only)
+- Color-coded urgency system
+- Real-time percentage progress tracking
+- Victory screen with scrolling ticker
+- Procedural arcade-style trophy animation
+- Optimized for Raspberry Pi headless OS
 
 ---
 
-### 1. Flash a headless OS
+## 🎮 Controls
 
-Use **Raspberry Pi OS Lite (64-bit)** — no desktop environment.
-Flash with Raspberry Pi Imager, enable SSH in settings if you want to configure remotely.
+### Menu
+- ↑ / ↓ → Navigate menu
+- ENTER → Select
+- ESC → Quit
+
+### Custom time
+- ← / → → Select field (HH / MM / SS)
+- ↑ / ↓ → Adjust value
+- ENTER → Confirm
+
+### Timer
+- ENTER → Start
+- ESC → Exit program
 
 ---
 
-### 2. Install dependencies
+## 🖥️ Display Modes
 
-SSH in or connect a keyboard, then:
+### Countdown states:
+- White → Normal time
+- Orange → Last 10 minutes
+- Red → Final minute (flashing)
+
+### Victory mode:
+- Drawn trophy
+- Flashing 00:00:00
+- Scrolling thank-you ticker
+
+---
+
+## ⚙️ Requirements
+
+- Raspberry Pi 3B+ / 4 / 5
+- Raspberry Pi OS (Lite or Full)
+- HDMI display
+- Keyboard (USB or wireless)
+- Python 3.9+
+
+---
+
+## 📦 Dependencies
+
+Install system packages:
 
 ```bash
-sudo apt update && sudo apt upgrade -y
-sudo apt install -y python3-pygame fonts-freefont-ttf python3-pip
-```
+sudo apt update
+sudo apt install -y python3 python3-pygame
+````
 
-That's it — `python3-pygame` on Raspberry Pi OS Lite already includes
-SDL2 with framebuffer support. No X11 needed.
-
----
-
-### 3. Copy the script
+Optional (better performance on Pi):
 
 ```bash
-# From your PC:
-scp countdown_timer.py pi@raspberrypi.local:/home/pi/
-
-# Or via USB stick — mount and copy manually
+sudo apt install -y xserver-xorg xinit
 ```
 
 ---
 
-### 4. Test it manually
+## 📁 Project Setup
+
+Create a folder:
 
 ```bash
-python3 /home/pi/countdown_timer.py
+mkdir countdown-timer
+cd countdown-timer
 ```
 
-You should see the menu on the HDMI display immediately.
+Save your script as:
 
-**Controls:**
-| Key | Action |
-|-----|--------|
-| ← → | Switch between Hours / Minutes / Seconds |
-| ↑ ↓ | Increase / Decrease selected value |
-| R | Reset to 24:00:00 |
-| Enter / Space | Confirm on menu — Start on timer screen |
-| Esc | Back to menu (from timer) |
-| Any key / click | Exit (from finished screen) |
+```
+countdown-timer.py
+```
 
 ---
 
-### 5. Auto-launch on boot
+## 🚀 Running the Program
 
-Create a systemd service so the timer starts automatically when the Pi boots:
+### Option 1: Direct launch (desktop mode)
+
+```bash
+python3 countdown-timer.py
+```
+
+---
+
+### Option 2: Headless kiosk boot (recommended)
+
+Edit autostart:
+
+```bash
+sudo nano /etc/rc.local
+```
+
+Add before `exit 0`:
+
+```bash
+python3 /home/pi/countdown-timer/countdown-timer.py &
+```
+
+---
+
+### Option 3: Autostart via systemd (best practice)
+
+Create service:
 
 ```bash
 sudo nano /etc/systemd/system/countdown.service
 ```
 
-Paste this content:
+Paste:
 
 ```ini
 [Unit]
-Description=Walk for a Cause Countdown Timer
-After=multi-user.target
+Description=Countdown Timer
+After=graphical.target
 
 [Service]
-User=pi
-Group=pi
-Environment=SDL_VIDEODRIVER=fbcon
-Environment=SDL_FBDEV=/dev/fb0
-Environment=SDL_AUDIODRIVER=dummy
-ExecStart=/usr/bin/python3 /home/pi/countdown_timer.py
+ExecStart=/usr/bin/python3 /home/pi/countdown-timer/countdown-timer.py
 Restart=always
-RestartSec=3
+User=pi
+Environment=DISPLAY=:0
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=graphical.target
 ```
 
-Enable and start it:
+Enable it:
 
 ```bash
-sudo systemctl daemon-reload
 sudo systemctl enable countdown.service
 sudo systemctl start countdown.service
 ```
 
-Check status:
+---
+
+## 🧠 Performance Notes (Raspberry Pi 3B+)
+
+Recommended settings:
+
+* Use HDMI resolution 1024x768 or 720p for smoother performance
+* Avoid running other heavy desktop apps
+* Disable screensaver:
+
 ```bash
-sudo systemctl status countdown.service
+xset s off
+xset -dpms
+xset s noblank
 ```
 
 ---
 
-### 6. HDMI resolution
+## 🏁 Behavior Summary
 
-If your TV shows a wrong resolution or black bars, force 1080p in `/boot/config.txt`:
+### Start Flow:
 
-```bash
-sudo nano /boot/config.txt
-```
+Menu → Time Setup → Preview → Countdown
 
-Add or uncomment:
-```
-hdmi_force_hotplug=1
-hdmi_group=1
-hdmi_mode=16        # 1080p 60Hz
-# hdmi_mode=4       # 720p 60Hz (use this for older TVs)
-```
+### End Flow:
 
-Reboot after changes.
+00:00:00 → Flashing mode → Victory ticker loop
 
 ---
 
-### 7. Prevent screen blanking
+## ❤️ Purpose
 
-The Pi console blanks the screen after 10 minutes. Disable it:
+Designed for:
 
-```bash
-sudo nano /boot/cmdline.txt
-```
-
-Add to the end of the existing single line (do not add a new line):
-```
-consoleblank=0
-```
+* Charity walking events
+* Public event countdown displays
+* Fundraising awareness screens
+* Stadium / hall HDMI displays
 
 ---
 
-### 8. Permissions for framebuffer
+## 📜 License
 
-The `pi` user normally has framebuffer access, but if you get a permission error:
-```bash
-sudo usermod -aG video pi
-```
-Then reboot.
+Free to use for non-commercial charity and public events.
 
----
 
-### Troubleshooting
-
-| Problem | Fix |
-|---------|-----|
-| Black screen | Check `hdmi_force_hotplug=1` in `/boot/config.txt` |
-| Font looks wrong | Run `sudo apt install fonts-freefont-ttf` |
-| `No module named pygame` | Run `sudo apt install python3-pygame` |
-| Screen goes blank mid-event | Add `consoleblank=0` to cmdline.txt |
-| Wrong resolution | Set `hdmi_mode` in `/boot/config.txt` |
